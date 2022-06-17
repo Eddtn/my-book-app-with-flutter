@@ -1,8 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:http/http.dart';
-// import 'package:my_book_app/constants/apptext.dart';
 import 'package:my_book_app/models/book_model.dart';
 import 'package:my_book_app/service/book_service.dart';
 
@@ -14,18 +11,18 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  List<Books> books = [];
+  List<BooksModel> books = [];
 
   bool isLoaded = false;
 
   @override
   void initState() {
+    Future.delayed(Duration(seconds: 5), (() => getData()));
     super.initState();
-    getData();
   }
 
   getData() async {
-    final books = await BookService().getBooks();
+    final books = await BookService();
     if (books != null) {
       setState(() {
         isLoaded = true;
