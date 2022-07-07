@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 // import 'package:my_book_app/views/home_view.dart';
 
 class BookService {
-  Future<BooksModel> getData() async {
+  Future<List<BooksModel>> getData() async {
     try {
       http.Response response = await http.get(
         Uri.parse(
@@ -13,14 +13,45 @@ class BookService {
         ),
         headers: {
           'X-RapidAPI-Key':
-              '6d18f7b665msh1904bbc2592dc68p1e32bcjsn5cca8d8c8255',
+              '69944cc6afmsh83bd264740dcb8ep134087jsnaf514b7f3724',
+          // '5127ba29c8mshaa7c89a30e6bce1p1705e0jsnd34c4f1caf22',
           'X-RapidAPI-Host': 'hapi-books.p.rapidapi.com'
         },
       );
       print('object people');
-      // final responseJson = jsonDecode(response.body);
+
       final data = jsonDecode(response.body);
-      return BooksModel.fromMap(data);
+      return (data as List)
+          .map<BooksModel>(
+              (elemant) => BooksModel.fromMap(elemant as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
+  }
+
+  Future<List<PopularBookModel>> getPopularBokks() async {
+    try {
+      http.Response response = await http.get(
+        Uri.parse(
+          "https://hapi-books.p.rapidapi.com/month/2022/3",
+        ),
+        headers: {
+          'X-RapidAPI-Key':
+              '69944cc6afmsh83bd264740dcb8ep134087jsnaf514b7f3724',
+          // '5127ba29c8mshaa7c89a30e6bce1p1705e0jsnd34c4f1caf22',
+          'X-RapidAPI-Host': 'hapi-books.p.rapidapi.com'
+        },
+      );
+      print('object person people');
+      // print(response.body);
+
+      final datas = jsonDecode(response.body);
+      return (datas as List)
+          .map<PopularBookModel>((elemant) =>
+              PopularBookModel.fromMap(elemant as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       print(e);
       rethrow;
