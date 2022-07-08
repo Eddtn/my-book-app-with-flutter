@@ -59,3 +59,34 @@ class PopularBookModel {
         "rating": url,
       };
 }
+
+class AwardedBooksModel {
+  final int book_id;
+  final String name;
+  final String cover;
+  final String url;
+  final String winning_category;
+
+  AwardedBooksModel({
+    required this.book_id,
+    required this.name,
+    required this.cover,
+    required this.url,
+    required this.winning_category,
+  });
+
+  factory AwardedBooksModel.fromMap(Map<String, dynamic> json) =>
+      AwardedBooksModel(
+          book_id: json['book_id'],
+          name: json['name'],
+          cover: json['cover'],
+          url: json['url'],
+          winning_category: json['winning_category']);
+
+  Map<String, dynamic> toMap() => {
+        "book_id": book_id,
+        "name": name,
+        "cover": cover,
+        "winning_category": winning_category,
+      };
+}

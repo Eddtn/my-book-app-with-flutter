@@ -18,9 +18,13 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   List<BooksModel> books = [];
   List<PopularBookModel> popularBooks = [];
+  List<AwardedBooksModel> booksAwarded = [];
+
   late WebViewController controller;
+  double rating = 0;
 
   bool isLoaded = false;
+  bool isLoading = false;
   // bool isLoading = false;
 
   @override
@@ -28,6 +32,7 @@ class _HomeViewState extends State<HomeView> {
     // Future.delayed(Duration(seconds: 5), (() => getData()));
     getData();
     getPopularBokks();
+    getAwardedBook();
     super.initState();
   }
 
@@ -72,16 +77,29 @@ class _HomeViewState extends State<HomeView> {
       });
     }
   }
-  // getData() async {
-  //   final books = await BookService();
-  //   if (books != null) {
-  //     setState(() {
-  //       isLoaded = true;
-  //     });
-  //   }
-  // }
 
-  // Completer<WebViewController> _controller = Completer<WebViewController>();
+  getAwardedBook() async {
+    try {
+      setState(() {
+        isLoaded = true;
+      });
+
+      final bookService = BookService();
+      booksAwarded = await bookService.getAwardedBooks();
+
+      // print('///////////getpopularbook/////////////');
+      // print(popularBooks);
+
+      setState(() {
+        isLoaded = false;
+      });
+    } catch (e) {
+      print(e);
+      setState(() {
+        isLoaded = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +169,14 @@ class _HomeViewState extends State<HomeView> {
                                           onWebViewCreated: (controller) {
                                             this.controller = controller;
                                             // _controller.complete(controller);
+                                          },
+                                          onPageFinished: (finish) {
+                                            setState(() {
+                                              isLoaded = true;
+                                            });
+                                            setState(() {
+                                              isLoaded = false;
+                                            });
                                           },
                                         ),
                                       ),
@@ -347,117 +373,160 @@ class _HomeViewState extends State<HomeView> {
                                 scrollDirection: Axis.horizontal,
                                 itemCount: popularBooks.length,
                                 itemBuilder: (BuildContext context, index) =>
-                                    Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        height: 240,
-                                        width: 160,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                          color: Colors.red,
+                                    InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => isLoading
+                                              ? const Center(
+                                                  child:
+                                                      CircularProgressIndicator())
+                                              : WebView(
+                                                  initialUrl:
+                                                      "${popularBooks[index].url}",
+                                                  //  "${books[index].url}",
+
+                                                  javascriptMode: JavascriptMode
+                                                      .unrestricted,
+                                                  onWebViewCreated:
+                                                      (controller) {
+                                                    this.controller =
+                                                        controller;
+                                                    // _controller.complete(controller);
+                                                  },
+                                                  onPageFinished: (finish) {
+                                                    setState(() {
+                                                      isLoading = true;
+                                                    });
+                                                    // setState(() {
+                                                    //   isLoaded = false;
+                                                    // });
+                                                  },
+                                                ),
+                                        ));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          height: 240,
+                                          width: 160,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                            color: Colors.red,
+                                          ),
+                                          child: CachedNetworkImage(
+                                              fit: BoxFit.cover,
+                                              imageUrl:
+                                                  "${popularBooks[index].cover}"
+                                              // 'https://w7.pngwing.com/pngs/190/293/png-transparent-red-book-book-red-book-free-rectangle-orange-material-thumbnail.png',
+                                              ),
                                         ),
-                                        child: CachedNetworkImage(
-                                            fit: BoxFit.cover,
-                                            imageUrl:
-                                                "${popularBooks[index].cover}"
-                                            // 'https://w7.pngwing.com/pngs/190/293/png-transparent-red-book-book-red-book-free-rectangle-orange-material-thumbnail.png',
+                                        Container(
+                                          height: 200,
+                                          width: 240,
+                                          color: Colors.black,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: Column(
+                                              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "TITLE: ${popularBooks[index].name}",
+                                                  style: const TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Text(
+                                                  "BOOK_ID: ${popularBooks[index].book_id}",
+                                                  style: const TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Text(
+                                                  "N0: ${popularBooks[index].position}",
+                                                  style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 25),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+
+                                                Container(
+                                                  color: Colors.grey,
+                                                  height: 50,
+                                                  child: RatingBar.builder(
+                                                      updateOnDrag: true,
+                                                      allowHalfRating: true,
+                                                      direction:
+                                                          Axis.horizontal,
+                                                      // itemCount: 3,
+                                                      itemBuilder:
+                                                          (context, _) {
+                                                        return const Icon(
+                                                          Icons.star,
+                                                          color: Colors.amber,
+                                                        );
+                                                      },
+                                                      onRatingUpdate: (rating) {
+                                                        setState(() {
+                                                          Text(
+                                                              "${popularBooks[index].rating}");
+                                                        });
+                                                      }),
+                                                ),
+                                                // Text(
+                                                //   "Rating: $rating",
+                                                //   style: TextStyle(
+                                                //       color: Colors.white),
+                                                // )
+
+                                                // Padding(
+                                                //   padding:
+                                                //       const EdgeInsets.all(5.0),
+                                                //   child: Row(
+                                                //     children: [
+                                                //       Icon(
+                                                //         Icons.star,
+                                                //         color: Colors.white,
+                                                //       ),
+
+                                                //       // Icon(
+                                                //       //   Icons.star,
+                                                //       //   color: Colors.white,
+                                                //       // ),
+                                                //       // Icon(
+                                                //       //   Icons.star,
+                                                //       //   color: Colors.white,
+                                                //       // ),
+                                                //       // Icon(
+                                                //       //   Icons.star,
+                                                //       //   color: Colors.white,
+                                                //       // ),
+                                                //       // Icon(
+                                                //       //   Icons.star,
+                                                //       //   color: Colors.white,
+                                                //       // ),
+                                                //       Text(
+                                                //           '${popularBooks[index].rating}'),
+
+                                                //     ],
+                                                //   ),
+                                                // ),
+                                              ],
                                             ),
-                                      ),
-                                      Container(
-                                        height: 200,
-                                        width: 240,
-                                        color: Colors.black,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Column(
-                                            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "${popularBooks[index].name}",
-                                                style: const TextStyle(
-                                                    color: Colors.white),
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Text(
-                                                "${popularBooks[index].book_id}",
-                                                style: const TextStyle(
-                                                    color: Colors.white),
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Text(
-                                                "${popularBooks[index].position}",
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 25),
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-
-                                              Container(
-                                                color: Colors.red,
-                                                height: 50,
-                                                child: RatingBar.builder(
-                                                    allowHalfRating: true,
-                                                    direction: Axis.horizontal,
-                                                    // itemCount: 3,
-                                                    itemBuilder: (context, _) {
-                                                      return Text(
-                                                          "${popularBooks[index].rating}");
-                                                      Icon(
-                                                        Icons.star,
-                                                        color: Colors.amber,
-                                                      );
-                                                    },
-                                                    onRatingUpdate: (rating) {
-                                                      print('rating');
-                                                    }),
-                                              ),
-
-                                              // Padding(
-                                              //   padding:
-                                              //       const EdgeInsets.all(5.0),
-                                              //   child: Row(
-                                              //     children: [
-                                              //       Icon(
-                                              //         Icons.star,
-                                              //         color: Colors.white,
-                                              //       ),
-
-                                              //       // Icon(
-                                              //       //   Icons.star,
-                                              //       //   color: Colors.white,
-                                              //       // ),
-                                              //       // Icon(
-                                              //       //   Icons.star,
-                                              //       //   color: Colors.white,
-                                              //       // ),
-                                              //       // Icon(
-                                              //       //   Icons.star,
-                                              //       //   color: Colors.white,
-                                              //       // ),
-                                              //       // Icon(
-                                              //       //   Icons.star,
-                                              //       //   color: Colors.white,
-                                              //       // ),
-                                              //       Text(
-                                              //           '${popularBooks[index].rating}'),
-
-                                              //     ],
-                                              //   ),
-                                              // ),
-                                            ],
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -533,7 +602,7 @@ class _HomeViewState extends State<HomeView> {
                                   ),
                                   SizedBox(width: 20),
                                   Text(
-                                    'MOST VIEWED',
+                                    'AWARDED BOOKS OF THE YEAR',
                                     style: TextStyle(color: Colors.white),
                                   )
                                 ],
@@ -547,11 +616,14 @@ class _HomeViewState extends State<HomeView> {
                               color: const Color(0xff2C2C2C),
                               child: ListView.builder(
                                 scrollDirection: Axis.vertical,
-                                itemCount: 4,
+                                itemCount: booksAwarded.length,
                                 itemBuilder: (BuildContext context, index) =>
                                     Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(5.0),
                                   child: Row(
+                                    // crossAxisAlignment:
+                                    // CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Container(
                                         height: 240,
@@ -559,57 +631,37 @@ class _HomeViewState extends State<HomeView> {
                                         decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(5),
-                                          color: Colors.red,
+                                          // color: Colors.red,
                                         ),
                                         child: CachedNetworkImage(
                                             fit: BoxFit.cover,
                                             imageUrl:
-                                                'https://w7.pngwing.com/pngs/923/976/png-transparent-book-library-book-rectangle-reading-presentation-thumbnail.png'),
+                                                "${booksAwarded[index].cover}"
+                                            // 'https://w7.pngwing.com/pngs/923/976/png-transparent-book-library-book-rectangle-reading-presentation-thumbnail.png',
+                                            ),
                                       ),
                                       Container(
                                         height: 150,
-                                        width: 175,
+                                        width: 176,
                                         color: Colors.black,
                                         child: Padding(
                                           padding: const EdgeInsets.all(16.0),
                                           child: Column(
-                                            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              const Text(
-                                                'book title',
-                                                style: TextStyle(
+                                              Text(
+                                                'TITLE: ${booksAwarded[index].name}',
+                                                style: const TextStyle(
                                                     color: Colors.white),
                                               ),
                                               const SizedBox(
-                                                height: 50,
+                                                height: 20,
                                               ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Row(
-                                                  children: const [
-                                                    Icon(
-                                                      Icons.star,
-                                                      color: Colors.white,
-                                                    ),
-                                                    Icon(
-                                                      Icons.star,
-                                                      color: Colors.white,
-                                                    ),
-                                                    Icon(
-                                                      Icons.star,
-                                                      color: Colors.white,
-                                                    ),
-                                                    Icon(
-                                                      Icons.star,
-                                                      color: Colors.white,
-                                                    ),
-                                                    Icon(
-                                                      Icons.star,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ],
-                                                ),
+                                              Text(
+                                                'BOOK_ID: ${booksAwarded[index].book_id}',
+                                                style: TextStyle(
+                                                    color: Colors.white),
                                               ),
                                             ],
                                           ),

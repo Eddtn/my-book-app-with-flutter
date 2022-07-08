@@ -57,6 +57,33 @@ class BookService {
       rethrow;
     }
   }
+
+  Future<List<AwardedBooksModel>> getAwardedBooks() async {
+    try {
+      http.Response response = await http.get(
+        Uri.parse(
+          "https://hapi-books.p.rapidapi.com/top/2021",
+        ),
+        headers: {
+          'X-RapidAPI-Key':
+              '69944cc6afmsh83bd264740dcb8ep134087jsnaf514b7f3724',
+          // '5127ba29c8mshaa7c89a30e6bce1p1705e0jsnd34c4f1caf22',
+          'X-RapidAPI-Host': 'hapi-books.p.rapidapi.com'
+        },
+      );
+      print('object person people');
+      // print(response.body);
+
+      final datas = jsonDecode(response.body);
+      return (datas as List)
+          .map<AwardedBooksModel>((elemant) =>
+              AwardedBooksModel.fromMap(elemant as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
+  }
 }
 
 
